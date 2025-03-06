@@ -2,9 +2,9 @@
 #lets first do the inputs
 import math
 import numpy as np
-import shutil
-import random
+
 def leave_one_out_cross_validation(data, features, value):
+    #print(features, value)
         #make a copy of the dataset, use a for loop and if its not the part of the feature, make it equal to 0
     filtered_data=[]
     for row in data:
@@ -13,49 +13,33 @@ def leave_one_out_cross_validation(data, features, value):
             if j in features or j==value or j==0:
                 filtered_row.append(row[j])
         filtered_data.append(filtered_row)
-    #print(filtered_data)
-        #change all occurances of data to filtered_data
     number_correctly_classified =0
     data = filtered_data
-    data_size = len(data[1:])
+    data_size = len(data)
     for k in range(data_size):
         object_to_classify = data[k][1:]
-        label_object_to_classify = data[k][0] #
-        # text = f'Looping over k at the {k}, location'
-        # print(text)
-        # text = f'The {k} th object is in class, {label_object_to_classify}'
-        # print(text)
+        label_object_to_classify = data[k][0]
         nearest_neighbor_distance = float('inf')
         nearest_neighbor_location = float('inf')
-        total =0
         for x in range(data_size):
             if x!=k:
-                distance = np.linalg.norm((np.array(data[x][1:]) - np.array(object_to_classify)))
-                #print(distances)
-                # total = (object_to_classify - data[x][1:]) ** 2
-                # distance = math.sqrt(total)
+                distance = np.linalg.norm(np.array(object_to_classify)-(np.array(data[x][1:])))
                 if distance < nearest_neighbor_distance:
                     nearest_neighbor_distance = distance
                     nearest_neighbor_location = x
                     nearest_neighbor_label = data[nearest_neighbor_location][0]
-        # print(f'Object {k} is class {label_object_to_classify}')
-        # print(f'Its nearest neighbor is {nearest_neighbor_location} which is in class {nearest_neighbor_label}')
         if label_object_to_classify == nearest_neighbor_label:
             number_correctly_classified = number_correctly_classified + 1
     accuracy = number_correctly_classified / len(data)
     print(f'This is accuracy {accuracy}')
     return accuracy
 
-# def leave_one_out_cross_validation(data, features, value):
-#      random.seed(5)
-#      list_values = [0.6, 0.3, 0.9, 0.7, 0.2]
-#      value = random.choice(list_values)
-#      return value
-
-def feature_search_demo(data):
-    track_of_accuracy = []
+def forward_search_demo(data):
     num_levels = len(data[0]) #going through the columns, removed the -1
     current_set_of_features = []
+
+    max_ac = 0
+    max_features = []
 
     for x in range(1,num_levels):
         text = f'On the {x} th level of the search tree'
@@ -63,26 +47,56 @@ def feature_search_demo(data):
         feature_to_add_at_this_level = []
         best_so_far_accuracy = 0
         for k in range(1,num_levels):
-            if k not in current_set_of_features:    
-                text = f'--Considering adding the {k} feature'
+            if k not in current_set_of_features:   
+                text = f'--Considering adding the {",".join([str(x) for x in current_set_of_features])}, {k} feature'
                 print(text)
-                accuracy = leave_one_out_cross_validation(data, current_set_of_features, k+1)
-
+                accuracy = leave_one_out_cross_validation(data, current_set_of_features, k)
                 if accuracy > best_so_far_accuracy:
-                     best_so_far_accuracy = accuracy
-                     feature_to_add_at_this_level = k
-        track_of_accuracy.append(accuracy)
+                    best_so_far_accuracy = accuracy
+                    feature_to_add_at_this_level = k
         current_set_of_features.append(feature_to_add_at_this_level)
+        if(best_so_far_accuracy > max_ac):
+            max_ac = best_so_far_accuracy
+            max_features = [x for x in current_set_of_features]
         text = f'On level {x} i added feature {feature_to_add_at_this_level} to current set'
         print(text)
-    max_accuracy = np.argmax(track_of_accuracy)
-    print(f'The best feature subset is {current_set_of_features[max_accuracy]}, which has an accuracy of {track_of_accuracy[max_accuracy]}')
+    print(f'The best feature subset is {max_features}, which has an accuracy of {max_ac}')
+
+def backward_search_demo(data):
+    num_levels = len(data[0]) #going through the columns, removed the -1
+    current_set_of_features = [x for x in range(1,num_levels)] #this is all the features
+    max_ac = 0
+    max_features = []
+
+    for x in range(1,num_levels):
+        text = f'On the {x} th level of the search tree'
+        print(text)
+        best = 0
+        feature_to_add_at_this_level = []
+        for f in current_set_of_features:
+            new_feature = []
+            for x in current_set_of_features:
+                if(x != f):
+                    new_feature.append(x)
+            print(new_feature)
+            accuracy = leave_one_out_cross_validation(data, new_feature, 0)
+            if(accuracy > best):
+                feature_to_add_at_this_level = new_feature
+                best = accuracy
+        current_set_of_features = feature_to_add_at_this_level 
+        if(best > max_ac):
+            max_ac = best
+            max_features = [x for x in current_set_of_features]
+        text = f'On level {x} i added feature {feature_to_add_at_this_level} to current set'
+        print(text)
+    print(f'The best feature subset is {max_features}, which has an accuracy of {max_ac}')
 
 def main():
     open_file = open("dataset1.txt")
     data = open_file.readlines()
     data = [[float(x) for x in row.strip().split("  ")] for row in data]
-    feature_search_demo(data)
+    #forward_search_demo(data)
+    backward_search_demo(data)
     #leave_one_out_cross_validation(data, 1, 2)
 
 main()

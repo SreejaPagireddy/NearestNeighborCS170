@@ -1,11 +1,7 @@
-#import numpy as np
-#lets first do the inputs
-import math
 import numpy as np
+import time
 
 def leave_one_out_cross_validation(data, features, value):
-    #print(features, value)
-        #make a copy of the dataset, use a for loop and if its not the part of the feature, make it equal to 0
     filtered_data=[]
     for row in data:
         filtered_row=[]
@@ -31,12 +27,19 @@ def leave_one_out_cross_validation(data, features, value):
         if label_object_to_classify == nearest_neighbor_label:
             number_correctly_classified = number_correctly_classified + 1
     accuracy = number_correctly_classified / len(data)
-    print(f'This is accuracy {accuracy}')
     return accuracy
 
 def forward_search_demo(data):
+    start = time.time()
     num_levels = len(data[0]) #going through the columns, removed the -1
+    num_rows = len(data)
+    print(f'This dataset has {num_levels-1} (not including the class attribute, with {num_rows} instances\n')
+    total_features=[x for x in range(1,num_levels)] #this is all the features
     current_set_of_features = []
+    total_accuracy = leave_one_out_cross_validation(data, total_features, 0)
+    print(f'Running nearest neighbor with all {num_levels-1} features, using leaving-one-out evaluation, I get an accuracy of {total_accuracy}\n')
+    accuracy = leave_one_out_cross_validation(data, current_set_of_features, 0)
+    print( f'Uisng features {current_set_of_features} with accuracy of {accuracy}')
 
     max_ac = 0
     max_features = []
@@ -48,9 +51,9 @@ def forward_search_demo(data):
         best_so_far_accuracy = 0
         for k in range(1,num_levels):
             if k not in current_set_of_features:   
-                text = f'--Considering adding the {",".join([str(x) for x in current_set_of_features])}, {k} feature'
+                accuracy = leave_one_out_cross_validation(data, current_set_of_features, k)   
+                text = f'--Considering adding the {",".join([str(x) for x in current_set_of_features])}, {k} feature with accuracy {accuracy}'
                 print(text)
-                accuracy = leave_one_out_cross_validation(data, current_set_of_features, k)
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
                     feature_to_add_at_this_level = k
@@ -58,18 +61,27 @@ def forward_search_demo(data):
         if(best_so_far_accuracy > max_ac):
             max_ac = best_so_far_accuracy
             max_features = [x for x in current_set_of_features]
-        text = f'On level {x} i added feature {feature_to_add_at_this_level} to current set'
+        text = f'On level {x} i added feature {",".join(str(x) for x in current_set_of_features)} to current set'
         print(text)
     print(f'The best feature subset is {max_features}, which has an accuracy of {max_ac}')
+    end = time.time()
+    length = end - start
+    print(f'It took, {length} seconds')
 
 def backward_search_demo(data):
+    start = time.time()
     num_levels = len(data[0]) #going through the columns, removed the -1
+    num_rows = len(data)
+    print(f'This dataset has {num_levels-1} (not including the class attribute, with {num_rows} instances\n')
     current_set_of_features = [x for x in range(1,num_levels)] #this is all the features
-    max_ac = 0
-    max_features = []
+    max_features = current_set_of_features
+    accuracy = leave_one_out_cross_validation(data, current_set_of_features, 0)
+    print(f'Running nearest neighbor with all {num_levels-1} features, using leaving-one-out evaluation, I get an accuracy of {accuracy}\n')
+    max_ac = accuracy
+    print( f'Uisng features {current_set_of_features} with accuracy of {accuracy}')
 
     for x in range(1,num_levels):
-        text = f'On the {x} th level of the search tree'
+        text = f'On the {x} th level of the search tree with accuracy'
         print(text)
         best = 0
         feature_to_add_at_this_level = []
@@ -78,8 +90,8 @@ def backward_search_demo(data):
             for x in current_set_of_features:
                 if(x != f):
                     new_feature.append(x)
-            print(new_feature)
             accuracy = leave_one_out_cross_validation(data, new_feature, 0)
+            print(f'Using feature {new_feature} with accuracy {accuracy}')
             if(accuracy > best):
                 feature_to_add_at_this_level = new_feature
                 best = accuracy
@@ -87,16 +99,18 @@ def backward_search_demo(data):
         if(best > max_ac):
             max_ac = best
             max_features = [x for x in current_set_of_features]
-        text = f'On level {x} i added feature {feature_to_add_at_this_level} to current set'
+        text = f'On level {x} i added feature {",".join(str(x) for x in current_set_of_features)} to current set with accuracy {best}'
         print(text)
     print(f'The best feature subset is {max_features}, which has an accuracy of {max_ac}')
+    end = time.time()
+    length = end - start
+    print(f'It took, {length} seconds')
 
 def main():
     open_file = open("dataset1.txt")
     data = open_file.readlines()
     data = [[float(x) for x in row.strip().split("  ")] for row in data]
-    #forward_search_demo(data)
-    backward_search_demo(data)
+    forward_search_demo(data)
+    #backward_search_demo(data)
     #leave_one_out_cross_validation(data, 1, 2)
-
 main()

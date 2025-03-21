@@ -62,7 +62,7 @@ def forward_search_demo(data):
     #now we want to calculate accuracy starting from empty set
     accuracy = leave_one_out_cross_validation(data, current_set_of_features, 0)
     print("Beginning Search")
-    print( f'Uisng features {current_set_of_features} with accuracy of {accuracy}')
+    print( f'Uisng features {{ }} with accuracy of {accuracy}')
 
     max_ac = 0
     max_features = []
@@ -78,7 +78,7 @@ def forward_search_demo(data):
             if k not in current_set_of_features:   
                 #lets calculate the accuracy of each feautre and how much it would be
                 accuracy = leave_one_out_cross_validation(data, current_set_of_features, k)   
-                text = f'Using feature(s) {",".join([str(x) for x in current_set_of_features])}, {k} accuracy is {accuracy}'
+                text = f'Using feature(s) {{{",".join([str(x) for x in current_set_of_features])},{k}}} accuracy is {accuracy}'
                 print(text)
                 #Here we want to find the best accuracy
                 if accuracy > best_so_far_accuracy:
@@ -114,7 +114,7 @@ def backward_search_demo(data):
     print(f'Running nearest neighbor with all {num_levels-1} features, using leaving-one-out evaluation, I get an accuracy of {accuracy}\n')
     max_ac = accuracy
     #this is all the features
-    print( f'Uisng features {current_set_of_features} with accuracy of {accuracy}')
+    print( f'Uisng features {{{current_set_of_features}}} with accuracy of {accuracy}')
 
     for l in range(1,num_levels):
         #lets go through all the levels of the tee
@@ -132,7 +132,7 @@ def backward_search_demo(data):
                     new_feature.append(x)
             #checking accuracy for the set of features not including one feature
             accuracy = leave_one_out_cross_validation(data, new_feature, 0)
-            print(f'Using feature {new_feature} with accuracy {accuracy}')
+            print(f'Using feature {{{new_feature}}} with accuracy {accuracy}')
             #we want to find the best accuracy
             if(accuracy > best):
                 feature_to_add_at_this_level = new_feature
@@ -147,11 +147,11 @@ def backward_search_demo(data):
         text = f'On level {l} i added feature {",".join(str(x) for x in current_set_of_features)} to current set with accuracy {best}'
         print(text)
     #printing the best feature with the highest accuracy at the end
-    print(f'The best feature subset is {max_features}, which has an accuracy of {max_ac}')
+    print(f'Finished search!! The best feature subset is {max_features}, which has an accuracy of {max_ac}')
     #lets end the time
     end = time.time()
     length = end - start
-    print(f'It took, {round(length, 2)} seconds')
+    #print(f'It took, {round(length, 2)} seconds')
 
 def main():
     open_file = open("dataset1.txt")
